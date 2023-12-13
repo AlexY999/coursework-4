@@ -1,0 +1,17 @@
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/paralel 4
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/paralel 4.deps.json
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/paralel 4.runtimeconfig.json
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/paralel 4.dll
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/paralel 4.pdb
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.csproj.AssemblyReference.cache
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.GeneratedMSBuildEditorConfig.editorconfig
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.AssemblyInfoInputs.cache
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.AssemblyInfo.cs
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.csproj.CoreCompileInputs.cache
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.dll
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/refint/paralel 4.dll
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.pdb
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.genruntimeconfig.cache
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/ref/paralel 4.dll
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/bin/Debug/net6.0/Newtonsoft.Json.dll
+/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/Debug/net6.0/paralel 4.csproj.CopyComplete

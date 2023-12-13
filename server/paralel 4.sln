@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "paralel 4", "paralel 4\paralel 4.csproj", "{64662605-0C6C-4C97-AB2B-50CCC6272D97}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{64662605-0C6C-4C97-AB2B-50CCC6272D97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64662605-0C6C-4C97-AB2B-50CCC6272D97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64662605-0C6C-4C97-AB2B-50CCC6272D97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64662605-0C6C-4C97-AB2B-50CCC6272D97}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
