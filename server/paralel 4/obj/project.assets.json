@@ -60,11 +60,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/aleksej/RiderProjects/paralel 4/paralel 4/paralel 4.csproj",
+      "projectUniqueName": "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/paralel 4.csproj",
       "projectName": "paralel 4",
-      "projectPath": "/Users/aleksej/RiderProjects/paralel 4/paralel 4/paralel 4.csproj",
+      "projectPath": "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/paralel 4.csproj",
       "packagesPath": "/Users/aleksej/.nuget/packages/",
-      "outputPath": "/Users/aleksej/RiderProjects/paralel 4/paralel 4/obj/",
+      "outputPath": "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/aleksej/.nuget/NuGet/NuGet.Config"

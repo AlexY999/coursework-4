@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MD/JRypxj7+LsB4WGE6w/BkL+Q2Hj7xlY/ORNQdV2Q4dSUkzKIIaILD7ssN2NatqZqww1fB2yNs8FppcJz5zsg==",
+  "dgSpecHash": "ZRlqjd6rETPg5nqnxwhvJ8UnYidI87AC96DHaO1ldugAg9Qzc9bAD6LbkgtBtXJ5Bi5XWAN0weUWmkMIa1dTeg==",
   "success": true,
-  "projectFilePath": "/Users/aleksej/RiderProjects/paralel 4/paralel 4/paralel 4.csproj",
+  "projectFilePath": "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/paralel 4.csproj",
   "expectedPackageFiles": [
     "/Users/aleksej/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512"
   ],
