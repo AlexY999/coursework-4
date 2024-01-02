@@ -24,9 +24,9 @@ namespace paralel_4
             Console.WriteLine("Server is listening on port {0}...", Port);
 
             //BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: Environment.ProcessorCount);
-            for (int i = 1; i < 20; i = i + 1) {
-                BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: i);
-            }
+            // for (int i = 1; i < 20; i = i + 1) {
+            //     BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: i);
+            // }
             BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: Environment.ProcessorCount);
 
             Task.Run(() => AcceptClients(listener));
@@ -118,8 +118,8 @@ namespace paralel_4
             Task.WhenAll(tasks).ContinueWith(t =>
             {
                 stopwatch.Stop();
-                LogPerformanceData(maxDegreeOfParallelism, stopwatch.ElapsedMilliseconds);
-                WriteDictionaryToFile();
+                Logger.LogPerformanceData(maxDegreeOfParallelism, stopwatch.ElapsedMilliseconds);
+                Logger.WriteDictionaryToFile(InvertedIndex);
             }).Wait();
         }
 
@@ -136,32 +136,6 @@ namespace paralel_4
             return chunkedFiles;
         }
 
-        static void LogPerformanceData(int maxDegreeOfParallelism, long elapsedMilliseconds)
-        {
-            string baseDir = "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/results/";
-            string logFile = Path.Combine(baseDir, "performance_log.txt");
-            string logLine = $"{DateTime.Now}, Threads: {maxDegreeOfParallelism}, Time: {elapsedMilliseconds} ms";
-            
-            Console.WriteLine(logLine);
-            
-            try
-            {
-                File.AppendAllText(logFile, logLine + Environment.NewLine);
-            }
-            catch (IOException e)
-            {
-                Console.WriteLine("Не вдалося записати в файл логу: " + e.Message);
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                Console.WriteLine("Відсутній доступ для запису в файл логу: " + e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Сталася помилка при запису в файл логу: " + e.Message);
-            }
-        }
-
         static void AddDocumentToIndex(string documentId, string content)
         {
             var words = content.Split(new char[] { ' ', '.', ',', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
@@ -175,30 +149,6 @@ namespace paralel_4
                     }
                     return existingValue;
                 });
-            }
-        }
-        
-        static void WriteDictionaryToFile()
-        {
-            string baseDir = "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/results/";
-            string outputFile = Path.Combine(baseDir, "serial_dictionary.txt");
-
-            var sb = new StringBuilder();
-
-            foreach (var pair in InvertedIndex)
-            {
-                sb.Append(pair.Key).Append(": [");
-                sb.Append(string.Join(", ", pair.Value));
-                sb.AppendLine("]");
-            }
-
-            try
-            {
-                File.WriteAllText(outputFile, sb.ToString());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Помилка при записі словника у файл: " + ex.Message);
             }
         }
     }
