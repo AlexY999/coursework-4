@@ -1,142 +1,204 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
-namespace paralel_4;
-
-static class InvertedIndexServer
+namespace paralel_4
 {
-    private static readonly int port = 8888;
-    private static readonly int variant = 27;
-    private static bool isRunning = true;
-    private static readonly Dictionary<string, List<string>> invertedIndex = new Dictionary<string, List<string>>();
-
-    static void Main(string[] args)
+    static class InvertedIndexServer
     {
-        Console.WriteLine("Starting Inverted Index server...");
+        private const int Port = 8888;
+        private const int Variant = 27;
+        private static bool _isRunning = true;
+        private static readonly ConcurrentDictionary<string, List<string>> InvertedIndex = new ConcurrentDictionary<string, List<string>>();
 
-        TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
-        listener.Start();
-        Console.WriteLine("Server is listening on port {0}...", port);
-        
-        BuildInvertedIndexForVariant(variant);
-
-        Thread thread = new Thread(() =>
+        public static void StartServer()
         {
-            while (isRunning)
+            var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
+            listener.Start();
+            Console.WriteLine("Server is listening on port {0}...", Port);
+
+            //BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: Environment.ProcessorCount);
+            for (int i = 1; i < 20; i = i + 1) {
+                BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: i);
+            }
+            BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: Environment.ProcessorCount);
+
+            Task.Run(() => AcceptClients(listener));
+
+            Console.WriteLine("Press any key to stop the server.");
+            Console.ReadKey();
+
+            _isRunning = false;
+            listener.Stop();
+            Console.WriteLine("Server stopped.");
+        }
+
+        static void AcceptClients(TcpListener listener)
+        {
+            while (_isRunning)
             {
-                TcpClient client = listener.AcceptTcpClient();
+                var client = listener.AcceptTcpClient();
                 Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
-
-                Thread clientThread = new Thread(() => HandleClientRequest(client));
-                clientThread.Start();
+                ThreadPool.QueueUserWorkItem(_ => HandleClientRequest(client));
             }
-        });
-        thread.Start();
-
-        Console.WriteLine("Press any key to stop the server.");
-        Console.ReadKey();
-
-        isRunning = false;
-        thread.Join();
-        listener.Stop();
-
-        Console.WriteLine("Server stopped.");
-    }
-
-    static void HandleClientRequest(TcpClient client)
-    {
-        try
-        {
-            NetworkStream stream = client.GetStream();
-            StreamReader reader = new StreamReader(stream);
-            StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
-
-            // Отримання запиту від клієнта
-            string keyword = reader.ReadLine();
-
-            // Пошук документів з використанням інвертованого індексу
-            var foundDocuments = SearchInInvertedIndex(keyword);
-
-            // Відправка результатів пошуку назад клієнту
-            string response = foundDocuments.Count > 0
-                ? $"Found in documents: {string.Join(", ", foundDocuments)}"
-                : "No documents found.";
-
-            writer.WriteLine(response);
         }
-        catch (Exception ex)
+
+        static void HandleClientRequest(TcpClient client)
         {
-            Console.WriteLine("Error: " + ex.Message);
-        }
-        finally
-        {
-            client.Close();
-        }
-    }
-
-    static List<string> SearchInInvertedIndex(string keyword)
-    {
-        if (invertedIndex.ContainsKey(keyword))
-        {
-            return invertedIndex[keyword];
-        }
-        return new List<string>();
-    }
-
-
-    static void BuildInvertedIndexForVariant(int variant)
-    {
-        var filePaths = GetFilePathsForVariant(variant);
-        foreach (var filePath in filePaths)
-        {
-            var content = File.ReadAllText(filePath);
-            var documentId = Path.GetFileName(filePath);
-            AddDocumentToIndex(documentId, content);
-        }
-    }
-
-    static List<string> GetFilePathsForVariant(int variant)
-    {
-        int n1 = 12500, n2 = 50000;
-        int startIndex = n1 / 50 * (variant - 1);
-        int endIndex = n1 / 50 * variant;
-
-        List<string> filePaths = new List<string>();
-        string baseDir = "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/aclImdb";
-
-        filePaths.AddRange(GetFilesFromDirectory(Path.Combine(baseDir, "test", "neg"), startIndex, endIndex));
-        filePaths.AddRange(GetFilesFromDirectory(Path.Combine(baseDir, "test", "pos"), startIndex, endIndex));
-        filePaths.AddRange(GetFilesFromDirectory(Path.Combine(baseDir, "train", "neg"), startIndex, endIndex));
-        filePaths.AddRange(GetFilesFromDirectory(Path.Combine(baseDir, "train", "pos"), startIndex, endIndex));
-
-        startIndex = n2 / 50 * (variant - 1);
-        endIndex = n2 / 50 * variant;
-        filePaths.AddRange(GetFilesFromDirectory(Path.Combine(baseDir, "train", "unsup"), startIndex, endIndex));
-
-        return filePaths;
-    }
-
-    static IEnumerable<string> GetFilesFromDirectory(string dir, int start, int end)
-    {
-        var files = Directory.GetFiles(dir);
-        for (int i = start; i < end && i < files.Length; i++)
-        {
-            yield return files[i];
-        }
-    }
-
-    static void AddDocumentToIndex(string documentId, string content)
-    {
-        var words = content.Split(new char[] { ' ', '.', ',', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var word in words)
-        {
-            if (!invertedIndex.ContainsKey(word))
+            try
             {
-                invertedIndex[word] = new List<string>();
+                using (NetworkStream stream = client.GetStream())
+                using (StreamReader reader = new StreamReader(stream))
+                using (StreamWriter writer = new StreamWriter(stream) { AutoFlush = true })
+                {
+                    while (true)
+                    {
+                        string keyword = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(keyword) || keyword.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                        {
+                            break;
+                        }
+
+                        var foundDocuments = SearchInInvertedIndex(keyword);
+                        string response = foundDocuments.Count > 0
+                            ? $"Found in documents: {string.Join(", ", foundDocuments)}"
+                            : "No documents found.";
+                        writer.WriteLine(response);
+                    }
+                }
             }
-            if (!invertedIndex[word].Contains(documentId))
+            catch (Exception ex)
             {
-                invertedIndex[word].Add(documentId);
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            finally
+            {
+                client.Close();
+            }
+        }
+
+
+        static List<string> SearchInInvertedIndex(string keyword)
+        {
+            if (InvertedIndex.TryGetValue(keyword, out List<string> documents))
+            {
+                return documents;
+            }
+            return new List<string>();
+        }
+
+        static void BuildInvertedIndexForVariant(int variant, int maxDegreeOfParallelism)
+        {
+            var filePaths = FileHelper.GetFilePathsForVariant(variant);
+            var chunks = ChunkFileList(filePaths, maxDegreeOfParallelism);
+
+            var tasks = new List<Task>();
+            var stopwatch = Stopwatch.StartNew();
+
+            foreach (var chunk in chunks)
+            {
+                tasks.Add(Task.Run(() =>
+                {
+                    foreach (var filePath in chunk)
+                    {
+                        var content = File.ReadAllText(filePath);
+                        var documentId = Path.GetFileName(filePath);
+                        AddDocumentToIndex(documentId, content);
+                    }
+                }));
+            }
+
+            Task.WhenAll(tasks).ContinueWith(t =>
+            {
+                stopwatch.Stop();
+                LogPerformanceData(maxDegreeOfParallelism, stopwatch.ElapsedMilliseconds);
+                WriteDictionaryToFile();
+            }).Wait();
+        }
+
+        static List<List<string>> ChunkFileList(List<string> filePaths, int chunks)
+        {
+            var chunkedFiles = new List<List<string>>();
+            int chunkSize = (int)Math.Ceiling((double)filePaths.Count / chunks);
+
+            for (int i = 0; i < filePaths.Count; i += chunkSize)
+            {
+                chunkedFiles.Add(filePaths.GetRange(i, Math.Min(chunkSize, filePaths.Count - i)));
+            }
+
+            return chunkedFiles;
+        }
+
+        static void LogPerformanceData(int maxDegreeOfParallelism, long elapsedMilliseconds)
+        {
+            string baseDir = "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/results/";
+            string logFile = Path.Combine(baseDir, "performance_log.txt");
+            string logLine = $"{DateTime.Now}, Threads: {maxDegreeOfParallelism}, Time: {elapsedMilliseconds} ms";
+            
+            Console.WriteLine(logLine);
+            
+            try
+            {
+                File.AppendAllText(logFile, logLine + Environment.NewLine);
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine("Не вдалося записати в файл логу: " + e.Message);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine("Відсутній доступ для запису в файл логу: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Сталася помилка при запису в файл логу: " + e.Message);
+            }
+        }
+
+        static void AddDocumentToIndex(string documentId, string content)
+        {
+            var words = content.Split(new char[] { ' ', '.', ',', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var word in words)
+            {
+                InvertedIndex.AddOrUpdate(word, new List<string>() { documentId }, (key, existingValue) =>
+                {
+                    if (!existingValue.Contains(documentId))
+                    {
+                        existingValue.Add(documentId);
+                    }
+                    return existingValue;
+                });
+            }
+        }
+        
+        static void WriteDictionaryToFile()
+        {
+            string baseDir = "/Users/aleksej/MyProjects/coursework-4/server/paralel 4/results/";
+            string outputFile = Path.Combine(baseDir, "serial_dictionary.txt");
+
+            var sb = new StringBuilder();
+
+            foreach (var pair in InvertedIndex)
+            {
+                sb.Append(pair.Key).Append(": [");
+                sb.Append(string.Join(", ", pair.Value));
+                sb.AppendLine("]");
+            }
+
+            try
+            {
+                File.WriteAllText(outputFile, sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Помилка при записі словника у файл: " + ex.Message);
             }
         }
     }
