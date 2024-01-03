@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 
 namespace paralel_4
 {
@@ -23,7 +17,6 @@ namespace paralel_4
             listener.Start();
             Console.WriteLine("Server is listening on port {0}...", Port);
 
-            //BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: Environment.ProcessorCount);
             // for (int i = 1; i < 20; i = i + 1) {
             //     BuildInvertedIndexForVariant(Variant, maxDegreeOfParallelism: i);
             // }
@@ -122,6 +115,45 @@ namespace paralel_4
                 Logger.WriteDictionaryToFile(InvertedIndex);
             }).Wait();
         }
+        
+        /*
+        static void BuildInvertedIndexForVariant(int variant, int maxDegreeOfParallelism)
+        {
+            var filePaths = FileHelper.GetFilePathsForVariant(variant);
+            var tasksQueue = new BlockingCollection<string>();
+
+            foreach (var filePath in filePaths)
+            {
+                tasksQueue.Add(filePath);
+            }
+            tasksQueue.CompleteAdding();
+
+            var tasks = new List<Task>();
+            var stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < maxDegreeOfParallelism; i++)
+            {
+                tasks.Add(Task.Run(() =>
+                {
+                    while (!tasksQueue.IsCompleted)
+                    {
+                        if (tasksQueue.TryTake(out var filePath, Timeout.Infinite))
+                        {
+                            var content = File.ReadAllText(filePath);
+                            var documentId = Path.GetFileName(filePath);
+                            AddDocumentToIndex(documentId, content);
+                        }
+                    }
+                }));
+            }
+
+            Task.WhenAll(tasks).ContinueWith(t =>
+            {
+                stopwatch.Stop();
+                Logger.LogPerformanceData(maxDegreeOfParallelism, stopwatch.ElapsedMilliseconds);
+                Logger.WriteDictionaryToFile(InvertedIndex);
+            }).Wait();
+        } */
 
         static List<List<string>> ChunkFileList(List<string> filePaths, int chunks)
         {
